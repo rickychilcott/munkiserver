@@ -1,9 +1,9 @@
 #!/usr/bin/ruby
 # 
-#  upload_report.rb
 #  Munki Server Client postflight script uses curl to post the latest ManagedInstallReport.plist
 #  
 #  Created by Jordan Raine and Brian Warsing on 2011-03-28.
+#  Modified by Ricky Chilcott
 #  Copyright 2011 Simon Fraser University. All rights reserved.
 #  Tue Apr  5 08:37:34 PDT 2011
 #  Version 0.1.3
@@ -12,6 +12,7 @@ require 'cgi'
 require 'pathname'
 require 'time'
 require 'osx/cocoa'
+require 'yaml'
 
 include OSX
 
@@ -51,8 +52,7 @@ def checkin_url
 end
 
 def managed_install_dir
-  path = bundle_pref_by_key("ManagedInstallDir")
-  path ||= "/Library/Managed Installs"
+  path = bundle_pref_by_key("ManagedInstallDir") || "/Library/Managed Installs"
   Pathname.new(path)
 end
 
@@ -72,14 +72,16 @@ def test?
   ARGV[0] == "test"
 end
 
-# Generates a system_profile plist and returns the path to it
-def system_profiler_plist
-  tmp_path = "/tmp/system_profiler_#{rand(1001)}.plist"
-  `/usr/sbin/system_profiler -xml SPHardwareDataType SPSoftwareDataType SPPrintersDataType > #{tmp_path}`
-  tmp_path
+def facts
+  if require("facter")
+    response = Facter.to_hash
+  else
+    response = {:facter_installed => "Facter no installed"}
+  end
+  response = YAML.dump(response)
 end
 
-post_command = "/usr/bin/curl #{ssl_option} --form \"managed_install_report_plist=@#{latest_managed_install_report_path}\" --form \"system_profiler_plist=@#{system_profiler_plist}\" #{checkin_url}"
+post_command = "/usr/bin/curl #{ssl_option} --form \"managed_install_report_plist=@#{latest_managed_install_report_path}\" --form \"facts=@#{facts}\" #{checkin_url}"
 
 if test? or debug?
   puts  post_command
