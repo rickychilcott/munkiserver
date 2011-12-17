@@ -1,7 +1,7 @@
 # Edit this Gemfile to bundle your application's dependencies.
 source 'http://gemcutter.org'
 
-gem "rails", "3.0.10"
+gem "rails", "3.1.3"
 gem "sqlite3-ruby", :require => "sqlite3"
 gem 'will_paginate', '~> 3.0'
 gem "nokogiri"
@@ -17,17 +17,10 @@ group :development do
   gem "textmate_backtracer"
 end
 
-group :test, :development do
-  gem "pry-rails"
-  gem "rspec-rails", "~> 2.6"
-  gem "capybara"
-  gem "launchy"
-  gem "guard-rspec"
-  gem "guard-cucumber"
+group :assets do
+  gem 'sass-rails'
+  gem 'coffee-rails'
+  gem 'uglifier'
 end
 
-group :test do
-  gem 'cucumber-rails'
-  gem "factory_girl_rails"
-  gem 'database_cleaner'
-end
+gem 'jquery-rails'
