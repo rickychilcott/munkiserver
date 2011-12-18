@@ -13,6 +13,7 @@ gem "cancan"
 gem "highline"
 gem "newrelic_rpm"
 gem "blueprint-rails"
+gem "highcharts-rails", "~> 2.1.9"
 
 group :development do
   gem "textmate_backtracer"
