@@ -11,7 +11,8 @@ gem "whenever"
 gem "plist"
 gem "cancan"
 gem "highline"
-gem "newrelic_rpm", :group => :production
+gem "newrelic_rpm"
+gem "blueprint-rails"
 
 group :development do
   gem "textmate_backtracer"
