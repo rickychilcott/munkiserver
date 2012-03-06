@@ -114,11 +114,17 @@ class PackagesController < ApplicationController
   
   # Used to download the actual package (typically a .dmg)
   def download
-    if @package.present?
-      send_file Munki::Application::PACKAGE_DIR + @package.installer_item_location, :filename => @package.to_s(:download_filename)
-      fresh_when :etag => @package, :last_modified => @package.created_at.utc, :public => true
-    else
-      render page_not_found
+    respond_to do |format|
+      if @package.present?
+        format.html do
+          send_file Munki::Application::PACKAGE_DIR + @package.installer_item_location, :filename => @package.to_s(:download_filename)
+          fresh_when :etag => @package, :last_modified => @package.created_at.utc, :public => true
+        end
+        
+        format.json { render :text => @package.to_json(:methods => [:name, :display_name]) }
+      else
+        render page_not_found
+      end
     end
   end
   
@@ -194,7 +200,7 @@ class PackagesController < ApplicationController
     elsif [:index, :new, :create, :edit_multiple, :update_multiple, :check_for_updates, :index_shared, :import_shared, :import_multiple_shared].include?(action)
       @package = Package.new(:unit_id => current_unit.id)
     elsif [:download].include?(action)      
-      @package = Package.find(params[:id])
+      @package = Package.find(params[:id].to_i)
     elsif [:environment_change].include?(action)      
       @package = Package.find(params[:package_id])
     else
