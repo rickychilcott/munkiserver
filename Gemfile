@@ -12,8 +12,6 @@ gem "plist"
 gem "cancan"
 gem "highline"
 gem "newrelic_rpm", :group => :production
-gem "tabs_on_rails"
-gem "formtastic"
 
 group :development do
   gem "textmate_backtracer"
