@@ -25,6 +25,7 @@ class Package < ActiveRecord::Base
   serialize :receipts
   serialize :supported_architectures, Array
   serialize :raw_tags
+  serialize :installer_choices_xml
   
   scope :recent, lambda {|u| where("created_at > ?", 7.days.ago).where(:unit_id => u) }
   scope :shared, where(:shared => true)
@@ -602,7 +603,7 @@ class Package < ActiveRecord::Base
               :installs,:RestartAction,:package_path,:autoremove,:installer_type,:installed_size,:installer_item_size,
               :installer_item_location,:uninstaller_item_location,:uninstaller_item_size,:uninstallable, :uninstall_method, :unattended_install, :unattended_uninstall,
               :preinstall_script, :postinstall_script, :uninstall_script, :preuninstall_script, :postuninstall_script,
-              :requires,:update_for,:catalogs,:version, :force_install_after_date]
+              :requires,:update_for,:catalogs,:version, :force_install_after_date, :installer_choices_xml]
        
       keys.each do |key|
         h[key.to_s] = self.send(key) if self.send(key).present?
@@ -824,9 +825,9 @@ class Package < ActiveRecord::Base
     
       # Parse plist
       begin
-        pkginfo_hash = Plist.parse_xml(pkginfo_file.read)
-      rescue RuntimeError => e
-        raise PackageError.new("Unable to parse pkginfo file -- Plist.parse_xml raised RuntimeError: #{e}")
+        pkginfo_hash = Plist.parse_xml(pkginfo_file.read.to_utf8)
+      rescue Exception => e
+        raise PackageError.new("Unable to parse pkginfo file -- Plist.parse_xml raised an exception: #{e}")
       end
     
       # Make sure pkginfo_hash isn't nil
@@ -938,6 +939,7 @@ class Package < ActiveRecord::Base
       # Move tmp_file to the package store
       begin
         FileUtils.mv package_file.tempfile.path, destination_path
+        FileUtils.chmod 0644, destination_path
       rescue Errno::EACCES => e
         raise PackageError.new("Unable to write to package store")
       end
